@@ -130,109 +130,33 @@ class HNN(NN):
         self.set_weights(weights)
 
 
-class NHNN(NN):
-    def __init__(self, nodes: list, hrules=None, grad=False, device="cpu", init=None):
-        super(NHNN, self).__init__(nodes, grad=grad, device=device, init=init,wopt=False)
+class NCHL(NN):
+    def __init__(self, nodes: list, params=None, grad=False, device="cpu", init=None):
+        super(NCHL, self).__init__(nodes, grad=grad, device=device, init=init)
 
         self.hrules = []
         self.nparams = sum(self.nodes) * 5 - self.nodes[0] - self.nodes[-1]
-        if hrules is not None:
-            self.set_hrules(hrules)
-        # self.hrules = torch.nn.ParameterList(self.hrules)
-        self.float()
+        self.eta = []
 
-    def forward(self, inputs):
+        self.eta = None
+        if params is not None:
+            self.set_params(params)
 
-        self.activations = []
-        x0 = inputs
-        self.activations.append(torch.clone(x0))
-        # print(x)
-        c = 0
+    def set_params(self, params: list):
+        etas = params[:sum(self.nodes)]
+        hrules = params[sum(self.nodes):]
 
-        for l in self.networks:
-            x1 = l(x0)
-            x1 = torch.tanh(x1)
-            self.activations.append(torch.clone(x1))
-            self.update_weights_layer(c, x0, x1)
-            x0 = x1
-            c += 1
-
-        return x1
-
-
-    def reset_weights(self):
-        self.set_weights(torch.zeros(self.nweights).detach().numpy().tolist())
-
-    def set_hrules2(self, hrules):
-        a = []
-        b = []
-        c = []
-        d = []
-        e = []
-
-        start = 0
-        a.append(torch.tensor(hrules[start:start+self.nodes[0]]))
-        start += self.nodes[0]
-
-        b.append(torch.zeros(self.nodes[0]))
-
-        c.append(torch.tensor(hrules[start:start + self.nodes[0]]))
-        start += self.nodes[0]
-
-        d.append(torch.tensor(hrules[start:start + self.nodes[0]]))
-        start += self.nodes[0]
-
-        e.append(torch.tensor(hrules[start:start + self.nodes[0]]))
-        start += self.nodes[0]
-
-        # print(self.nodes.tolist()[1,-1])
-        for l in self.nodes[1:-1]:
-            a.append(torch.tensor(hrules[start:start + self.nodes[l]]))
-            start += self.nodes[l]
-
-            b.append(torch.tensor(hrules[start:start + self.nodes[l]]))
-            start += self.nodes[l]
-
-            c.append(torch.tensor(hrules[start:start + self.nodes[l]]))
-            start += self.nodes[l]
-
-            d.append(torch.tensor(hrules[start:start + self.nodes[l]]))
-            start += self.nodes[l]
-
-            e.append(torch.tensor(hrules[start:start + self.nodes[l]]))
-            start += self.nodes[l]
-
-
-        a.append(torch.zeros(self.nodes[-1]))
-
-        b.append(torch.tensor(hrules[start:start + self.nodes[-1]]))
-        start += self.nodes[-1]
-
-        c.append(torch.tensor(hrules[start:start + self.nodes[-1]]))
-        start += self.nodes[-1]
-
-        d.append(torch.tensor(hrules[start:start + self.nodes[-1]]))
-        start += self.nodes[-1]
-
-        e.append(torch.tensor(hrules[start:start + self.nodes[-1]]))
-        start += self.nodes[-1]
-
-        self.a = torch.nn.ParameterList(a)
-        self.b = torch.nn.ParameterList(b)
-        self.c = torch.nn.ParameterList(c)
-        self.d = torch.nn.ParameterList(d)
-        self.e = torch.nn.ParameterList(e)
-
-
+        self.set_hrules(hrules)
+        self.set_eta(etas)
 
     def set_hrules(self, hrules: list):
-        assert len(hrules) == sum(self.nodes) * 5 - self.nodes[0] - self.nodes[-1], "needed " + str(
-            sum(self.nodes) * 5 - self.nodes[0] - self.nodes[-1]) + " received " + str(len(hrules))
-        start = 0
 
-        size = self.nodes[0] * 4 + start
-        tmp = np.reshape(hrules[start:size], (self.nodes[0], 4))
-        tmp1 = np.zeros((self.nodes[0], 5))
+        assert len(hrules) == sum(self.nodes) * 4 - self.nodes[0] - self.nodes[-1], "needed " + str(
+            sum(self.nodes) * 4 - self.nodes[0] - self.nodes[-1]) + " received " + str(len(hrules))
+        start = 0
+        size = self.nodes[0] * 3 + start
+        tmp = np.reshape(hrules[start:size], (self.nodes[0], 3))
+        tmp1 = np.zeros((self.nodes[0], 4))
         for i in range(self.nodes[0]):
             tmp1[i] = np.insert(tmp[i], 1, 0.)
 
@@ -240,98 +164,69 @@ class NHNN(NN):
         self.hrules.append(params)
 
         for l in self.nodes[1:-1]:
-            size = l * 5 + start
+            size = l * 4 + start
             params = torch.tensor(hrules[start:size])
-            self.hrules.append(torch.reshape(params, (l, 5)))
+            self.hrules.append(torch.reshape(params, (l, 4)))
 
             start = size
 
-        size = self.nodes[-1] * 4 + start
+        size = self.nodes[-1] * 3 + start
         params = torch.tensor(hrules[start:size])
-        tmp = torch.reshape(params, (self.nodes[-1], 4))
+        tmp = torch.reshape(params, (self.nodes[-1], 3))
         tmp1 = torch.tensor([[0.] for i in range(self.nodes[-1])])
-        self.hrules.append(torch.hstack((tmp1, tmp)))
+        self.hrules.append(torch.hstack((tmp1, tmp)).to(self.device))
 
-        self.hrules = torch.nn.ParameterList(self.hrules)
+    def set_eta(self, etas: list):
+        assert len(etas) == sum(self.nodes), "needed " + str(
+            sum(self.nodes)) + " received " + str(len(etas))
+        self.eta = []
+        start = 0
+        for l in self.nodes:
+            self.eta.append(torch.tensor(etas[start:start + l]).to(self.device))
+            start += l
 
-    def set_weights_layer(self, weights, i):
-
-        self.networks[i].weight.data = weights#torch.nn.Parameter(weights)
-
-
-    def update_weights_layer(self, i, activations_i, activations_i1):
+    def update_weights(self):
         weights = self.get_weights()
-        l = weights[i]
+        num_layers = len(weights)
+        t = time.time()
+        dws = []
+        for i in range(num_layers):
+            l = weights[i]
 
-        # hrule_i = self.hrules[i]
-        # hrule_i1 = self.hrules[i + 1]
-        # print(self.a[i] * activations_i)
-        pre_i = torch.reshape(self.a[i] * activations_i, (1, activations_i.size()[0]))
-        print("a_i", activations_i)
-        print("A*a_i",pre_i)
-        print("A",self.a[i])
-        print("aa ", self.a[i]*activations_i)
-        # exit(0)
-        # print("ABCD",hrule_i1)
+            l_size = l.shape
+            activations_i = self.activations[i].to(self.device)
+            activations_i1 = self.activations[i + 1].to(self.device)
+            hrule_i = self.hrules[i].to(self.device)
+            hrule_i1 = self.hrules[i + 1].to(self.device)
 
+            # Use broadcasting to perform element-wise operations without loops
 
-        pre_i = pre_i.repeat((activations_i1.size()[0], 1))
+            pre_i = torch.reshape(hrule_i[:, 0] * activations_i, (1, activations_i.size()[0]))
+            pre_i = pre_i.repeat((activations_i1.size()[0], 1))
+            post_j = torch.reshape(hrule_i1[:, 1] * activations_i1, (activations_i1.size()[0], 1))
+            post_j = post_j.repeat((1, activations_i.size()[0]))
 
-        post_j = torch.reshape(self.b[i+1] * activations_i1, (activations_i1.size()[0], 1))
-        post_j = post_j.repeat((1, activations_i.size()[0]))
+            c_i = torch.reshape(torch.where(hrule_i[:, 2] == 1., 1., hrule_i[:, 2] * activations_i),
+                                (1, activations_i.size()[0]))
+            c_j = torch.reshape(torch.where(hrule_i1[:, 2] == 1., 1., hrule_i1[:, 2] * activations_i1),
+                                (activations_i1.size()[0], 1))
+            d_i = torch.reshape(hrule_i[:, 3], (1, activations_i.size()[0]))
+            d_j = torch.reshape(hrule_i1[:, 3], (activations_i1.size()[0], 1))
 
-        c_i = torch.reshape(self.c[i] * activations_i, (1, activations_i.size()[0]))
-        c_j = torch.reshape(self.c[i+1] * activations_i1, (activations_i1.size()[0], 1))
-        # print(self.d)
-        d_i = torch.reshape(self.d[i], (1, activations_i.size()[0]))
-        d_j = torch.reshape(self.d[i+1], (activations_i1.size()[0], 1))
+            dw = pre_i + post_j + torch.where((c_i == 1.) & (c_j == 1.), 0, c_i * c_j) + torch.where(
+                (d_i == 1.) & (d_j == 1.), 0, d_i * d_j)
+            dws.append(dw)
+            # print(self.eta[i].repeat(activations_i1.size()[0], 1).size(),
+            #       torch.reshape(self.eta[i+1], (activations_i1.size()[0], 1)).repeat((1, activations_i.size()[0])).size(),
+            #       dw.size())
+            pre_eta = self.eta[i].repeat(activations_i1.size()[0], 1)
+            post_eta = torch.reshape(self.eta[i + 1], (activations_i1.size()[0], 1)).repeat(
+                (1, activations_i.size()[0]))
+            l += (pre_eta + post_eta) / 2 * dw
 
-        dw = pre_i + post_j + c_i * c_j + d_i * d_j
+        self.set_weights(weights)
 
-        pre_eta = self.e[i].repeat(activations_i1.size()[0], 1)
-        post_eta = torch.reshape(self.e[i+1], (activations_i1.size()[0], 1)).repeat((1, activations_i.size()[0]))
-        nl = l+ (pre_eta + post_eta) / 2 * dw
-        print("\\\\\\\\",nl)
-        print("=========", self.a[1])
-        # exit(0)
-
-        self.set_weights_layer(nl, i)
-        exit(1)
-
-    def update_weights_layer2(self, i, activations_i, activations_i1):
-        weights = self.get_weights()
-        l = weights[i]
-
-        hrule_i = self.hrules[i]
-        hrule_i1 = self.hrules[i + 1]
-        print(hrule_i[:, 0] * activations_i)
-        pre_i = torch.reshape(hrule_i[:, 0] * activations_i, (1, activations_i.size()[0]))
-        print(1,pre_i)
-        print(2,hrule_i[:, 0])
-        print(3,hrule_i)
-        exit(0)
-
-        pre_i = pre_i.repeat((activations_i1.size()[0], 1))
-
-        post_j = torch.reshape(hrule_i1[:, 1] * activations_i1, (activations_i1.size()[0], 1))
-        post_j = post_j.repeat((1, activations_i.size()[0]))
-
-        c_i = torch.reshape(torch.where(hrule_i[:, 2] == 1., 1., hrule_i[:, 2] * activations_i),
-                            (1, activations_i.size()[0]))
-        c_j = torch.reshape(torch.where(hrule_i1[:, 2] == 1., 1., hrule_i1[:, 2] * activations_i1),
-                            (activations_i1.size()[0], 1))
-        d_i = torch.reshape(hrule_i[:, 3], (1, activations_i.size()[0]))
-        d_j = torch.reshape(hrule_i1[:, 3], (activations_i1.size()[0], 1))
-
-        dw = pre_i + post_j + c_i * c_j + d_i * d_j
-
-        pre_eta = hrule_i[:, 4].repeat(activations_i1.size()[0], 1)
-        post_eta = torch.reshape(hrule_i1[:, 4], (activations_i1.size()[0], 1)).repeat((1, activations_i.size()[0]))
-        nl = l+ (pre_eta + post_eta) / 2 * dw
-        self.set_weights_layer(nl, i)
-
-
-class WLNHNN(NN):
+class WLNCHL(NN):
     def __init__(self, nodes, window, eta=0.1):
         super().__init__(nodes)
 
