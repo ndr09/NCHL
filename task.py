@@ -24,8 +24,7 @@ def eval(data, render=False):
 
     agent = NHNN(nodes,0)
     x = data[0]
-    agent.set_eta(x[:sum(nodes)])
-    agent.set_hrules(x[sum(nodes):])
+    agent.set_hrules(x)
     obs = task.reset()
     start = time.time()
     cumulative_rewards.append(0)
