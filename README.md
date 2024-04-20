@@ -28,11 +28,11 @@ To set up the Python environment, we provide the requiremnents.txt file.
 
 ## Paper Results and NCHL class usage
 To replicate the results from the paper, you can use the task.py file. 
-If you want to import the NCHL model into your codebase, you need to import the NHNN class from network.py. 
-The following code snapshot is the minimal code needed to import and initialize an instance of the NHNN class with one input, one hidden layer with two nodes, and 3 outputs. 
+If you want to import the NCHL model into your codebase, you need to import the NHCL class from network.py. 
+The following code snapshot is the minimal code needed to import and initialize an instance of the NHCL class with one input, one hidden layer with two nodes, and 3 outputs. 
 ```
-from network.py import NHNN
-nchl= NHNN([1,2,3])
+from network.py import NHCL
+nchl= NHCL([1,2,3])
 ```
 
 Then to set the Hebbian rules you have to execute the following code:
