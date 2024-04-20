@@ -9,7 +9,7 @@ from multiprocessing import Pool
 from network import NHNN
 import json
 
-from optimizer import ES2
+from optimizer import EvolutionStrategy
 
 
 def eval(data, render=False):
@@ -88,7 +88,7 @@ def experiment_launcher(config):
     print("this problem has " + str(args["num_vars"]) + " parameters")
     args["seed"] = seed
 
-    es = ES1(seed, args["num_vars"], 4, 0.35)
+    es = EvolutionStrategy(seed, args["num_vars"])
 
     gen = 0
     logs = []
