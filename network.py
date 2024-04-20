@@ -2,7 +2,6 @@ import numpy as np
 import torch
 import torch.nn as nn
 import time
-from scipy.stats import kstest
 
 class NN(nn.Module):
     def __init__(self, nodes: list, grad=False, init=None, device="cpu", wopt=True):
