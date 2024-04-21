@@ -14,7 +14,6 @@ University of Trento, Italy  <br>
   journal={arXiv preprint arXiv:2403.12076},
   year={2024}
 }
-}
 ```
 ## Abstract
 
