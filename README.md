@@ -1,6 +1,6 @@
 # NCHL
 
-*Neuron-centric Hebbian Learning** </br>
+*Neuron-centric Hebbian Learning* </br>
 *To appear at Gecco 2024* </br>
 Andrea Ferigo, Elia Cunegatti, Giovanni Iacca <br>
 University of Trento, Italy  <br>
@@ -23,12 +23,12 @@ One of the most striking capabilities behind the learning mechanisms of the brai
 
 ## Usage
 In this repository, you will find the implementation of the Neuron Centric Hebbian Learning model. 
-The model is written using the PyTorch library. To reproduce the results from the paper, you will need also the by bullet or Gymnasium libraries.
-To set up the Python environment, we provide the requiremnents.txt file. 
+The model is written using the PyTorch library. To reproduce the results from the paper, you will also need the by bullet or Gymnasium libraries.
+To set up the Python environment, we provide the ```requiremnents.txt``` file. 
 
 ## Paper Results and NCHL class usage
-To replicate the results from the paper, you can use the task.py file. 
-If you want to import the NCHL model into your codebase, you need to import the NHCL class from network.py. 
+To replicate the results from the paper, you can use the ```task.py``` file. 
+If you want to import the NCHL model into your codebase, you need to import the NHCL class from ```network.py```. 
 The following code snapshot is the minimal code needed to import and initialize an instance of the NHCL class with one input, one hidden layer with two nodes, and 3 outputs. 
 ```
 from network.py import NHCL
@@ -50,11 +50,11 @@ Finally, to update the weights, you need to call the update function
 nchl.update()
 ```
 
-The abovementioned code procedure is replicated in the ```sample.pynb```
+The abovementioned code procedure is replicated in the ```sample.ipynb```
 
 
 ## License 
 This project is released under the MIT license.
 
 ## Contact
-For any questions/doubt please feel free to contact us: andrea.ferigo@unitn.it, elia.cunegatti@unitn.it or giovanni.iacca@unitn.it
+For any questions/doubts please feel free to contact us: andrea.ferigo@unitn.it, elia.cunegatti@unitn.it or giovanni.iacca@unitn.it
