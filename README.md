@@ -1,7 +1,7 @@
 # NCHL
 
 *Neuron-centric Hebbian Learning* </br>
-*To appear at Gecco 2024* </br>
+*Accepted at Gecco 2024* </br>
 Andrea Ferigo, Elia Cunegatti, Giovanni Iacca <br>
 University of Trento, Italy  <br>
 [![arXiv](https://img.shields.io/badge/arXiv-2404.05621-b31b1b.svg)](https://arxiv.org/pdf/2403.12076.pdf) [![ACM](https://img.shields.io/badge/ACM-10.1145/1234567.1234567-blue.svg)](https://dl.acm.org/doi/pdf/10.1145/3638529.3654011)
