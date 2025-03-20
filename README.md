@@ -1,4 +1,4 @@
-# NCHL
+# Neuron-centric Hebbian Learning [GECCO 2024]
 
 *Neuron-centric Hebbian Learning* </br>
 *Accepted at Gecco 2024* </br>
